@@ -137,6 +137,11 @@ def scrape_cathay_movie_detail(movie: MovieTitle) -> MovieDetail:
         print(f"Error parsing movie details from {movie.href}: {e}")
         return None
 
+def get_cathay_movies() -> List[MovieDetail]:
+    movies = scrape_cathay_movies()
+    movie_details = [scrape_cathay_movie_detail(movie) for movie in movies]
+    return movie_details
+
 if __name__ == "__main__":
     movies = scrape_cathay_movies()
     movie_details = [scrape_cathay_movie_detail(movie) for movie in movies]
