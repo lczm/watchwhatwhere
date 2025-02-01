@@ -3,9 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 from fastapi import Depends, FastAPI
 from sqlmodel import Session, create_engine, select, SQLModel
-from model import MovieDetail
-from cathay import get_cathay_movies
-from pprint import pprint
+from model import MovieDetail, Showtime
 
 DATABASE_URL = "sqlite:///watchwhatwhere.db"
 engine = create_engine(DATABASE_URL, echo=True)
@@ -36,6 +34,14 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/")
 async def movies(session: SessionDep):
     return session.exec(select(MovieDetail)).all()
+
+@app.get("/movies/{movie_id}")
+async def movie(movie_id: int, session: SessionDep):
+    return session.exec(select(MovieDetail).where(MovieDetail.id == movie_id)).first()
+
+@app.get("/showtimes/{movie_id}")
+async def showtimes(movie_id: int, session: SessionDep):
+    return session.exec(select(Showtime).where(Showtime.movie_id == movie_id)).all()
 
 if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
