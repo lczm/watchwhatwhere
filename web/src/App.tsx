@@ -7,8 +7,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<MovieList />} />
-        <Route path="/movie/:id" element={<MovieDetails />} />
+        <Route path="/watchwhatwhere/" element={<MovieList />} />
+        <Route path="/watchwhatwhere/movie/:id" element={<MovieDetails />} />
       </Routes>
     </Router>
   );

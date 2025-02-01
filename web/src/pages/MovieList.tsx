@@ -24,7 +24,7 @@ export function MovieList() {
             <Card
               key={movie.id}
               className="cursor-pointer hover:bg-gray-50 w-full sm:min-w-[600px]"
-              onClick={() => navigate(`/movie/${movie.id}`)}
+              onClick={() => navigate(`/watchwhatwhere/movie/${movie.id}`)}
             >
               <CardHeader>
                 <CardTitle>{movie.title}</CardTitle>

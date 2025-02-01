@@ -31,15 +31,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.get("/")
+@app.get("/watchwhatwhere/")
 async def movies(session: SessionDep):
     return session.exec(select(MovieDetail)).all()
 
-@app.get("/movies/{movie_id}")
+@app.get("/watchwhatwhere/movies/{movie_id}")
 async def movie(movie_id: int, session: SessionDep):
     return session.exec(select(MovieDetail).where(MovieDetail.id == movie_id)).first()
 
-@app.get("/showtimes/{movie_id}")
+@app.get("/watchwhatwhere/showtimes/{movie_id}")
 async def showtimes(movie_id: int, session: SessionDep):
     return session.exec(select(Showtime).where(Showtime.movie_id == movie_id)).all()
 
