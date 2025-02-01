@@ -13,19 +13,19 @@
     "moduleDetection": "force",
     "noEmit": true,
 
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
       ]
     },
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
   },
   "include": ["vite.config.ts"]
 }
