@@ -3,7 +3,7 @@ name: Deploy static content to Pages
 
 defaults:
   run:
-    working-directory: web
+    working-directory: ./web
 
 on:
   # Runs on pushes targeting the default branch
