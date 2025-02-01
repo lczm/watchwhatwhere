@@ -31,8 +31,8 @@ export function MovieList() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  {movie.synopsis.length > 150
-                    ? `${movie.synopsis.substring(0, 150)}...`
+                  {movie.synopsis.length > 180
+                    ? `${movie.synopsis.substring(0, 180)}...`
                     : movie.synopsis}
                 </p>
               </CardContent>
