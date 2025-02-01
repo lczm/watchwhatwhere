@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Movie } from "@/types";
+import { ApiService } from "@/utils/api";
 
 export function MovieList() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:8000/")
+    fetch(ApiService.getEndpoint("/"))
       .then((response) => response.json())
       .then((data) => setMovies(data))
       .catch((error) => console.error("Error fetching movies:", error));

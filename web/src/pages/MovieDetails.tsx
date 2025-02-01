@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Movie, Showtime } from "@/types";
+import { ApiService } from "@/utils/api";
 
 export function MovieDetails() {
   const { id } = useParams();
@@ -10,13 +11,13 @@ export function MovieDetails() {
 
   useEffect(() => {
     // Fetch movie details
-    fetch(`http://localhost:8000/movies/${id}`)
+    fetch(ApiService.getEndpoint(`/movies/${id}`))
       .then((response) => response.json())
       .then((data) => setMovie(data))
       .catch((error) => console.error("Error fetching movie:", error));
 
     // Fetch showtimes
-    fetch(`http://localhost:8000/showtimes/${id}`)
+    fetch(ApiService.getEndpoint(`/showtimes/${id}`))
       .then((response) => response.json())
       .then((data) => setShowtimes(data))
       .catch((error) => console.error("Error fetching showtimes:", error));
