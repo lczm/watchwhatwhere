@@ -8,6 +8,15 @@ from model import Showtime, MovieTitle, MovieDetail
 
 CATHAY_HOME = "https://www.cathaycineplexes.com.sg/"
 
+def clean_title(title: str) -> str:
+    title = title.strip()
+    # If title ends with asterisk, remove it first
+    if title.endswith('*'):
+        title = title[:-1].strip()
+    # Then clean the PG ratings out, this can be gotten later on
+    title = ' '.join(title.split()[:-1])
+    return title
+
 def scrape_cathay_movies() -> List[MovieTitle]:
     """
     Scrapes currently showing movies from Cathay Cineplexes website.
@@ -39,13 +48,7 @@ def scrape_cathay_movies() -> List[MovieTitle]:
                     title_div = container.find('div', class_='text-[#43b8ff]')
                     if title_div:
                         # Clean up the title by removing rating and asterisk
-                        title = title_div.text.strip()
-                        # If title ends with asterisk, remove it first
-                        if title.endswith('*'):
-                            title = title[:-1].strip()
-                        # Then clean the PG ratings out, this can be gotten later on
-                        title = ' '.join(title.split()[:-1])
-                            
+                        title = clean_title(title_div.text)
                         movies.append(MovieTitle(title=title, href=href))
         
         return movies
@@ -69,7 +72,7 @@ def scrape_cathay_movie_detail(movie: MovieTitle) -> MovieDetail:
 
         # Extract movie name from the blue title text
         movie_name_div = soup.find('div', class_='text-[#43b8ff]')
-        movie_name = movie_name_div.text.strip() if movie_name_div else ""
+        movie_name = clean_title(movie_name_div.text) if movie_name_div else ""
 
         # Extract synopsis from the text under SYNOPSIS
         synopsis_div = cast_div = genre_div = language_div = rating_div = runtime_div = opening_div = None
