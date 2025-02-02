@@ -29,10 +29,10 @@ export function MovieDetails() {
       if (!acc[date]) {
         acc[date] = {};
       }
-      if (!acc[date][showtime.cinema]) {
-        acc[date][showtime.cinema] = [];
+      if (!acc[date][showtime.location]) {
+        acc[date][showtime.location] = [];
       }
-      acc[date][showtime.cinema].push(showtime);
+      acc[date][showtime.location].push(showtime);
       return acc;
     }, {} as Record<string, Record<string, Showtime[]>>);
   };
@@ -80,9 +80,9 @@ export function MovieDetails() {
               <CardContent>
                 <div className="space-y-4">
                   {Object.entries(groupedShowtimes[date]).map(
-                    ([cinema, times]) => (
-                      <div key={cinema} className="space-y-2">
-                        <h3 className="font-semibold text-sm">{cinema}</h3>
+                    ([location, times]) => (
+                      <div key={location} className="space-y-2">
+                        <h3 className="font-semibold text-sm">{location}</h3>
                         <div className="flex flex-wrap gap-2">
                           {times
                             .sort((a, b) => a.time.localeCompare(b.time))

@@ -8,11 +8,13 @@ export interface Movie {
   genre: string;
   rating: string;
   opening_date: string;
+  cinemas: string[];
 }
 
 export interface Showtime {
   date: string;
   cinema: string;
+  location: string;
   link: string;
   id: number;
   time: string;

@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Movie } from "@/types";
 import { ApiService } from "@/utils/api";
+
+const cinemaBorderColors: { [key: string]: string } = {
+  Cathay: "border-red-400",
+  Shaw: "border-blue-400",
+  // Add more cinemas and their colors here
+};
 
 export function MovieList() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -36,6 +48,18 @@ export function MovieList() {
                     : movie.synopsis}
                 </p>
               </CardContent>
+              <CardFooter className="flex gap-2">
+                {movie.cinemas.map((cinema) => (
+                  <span
+                    key={cinema}
+                    className={`px-2 py-1 rounded-full border text-sm ${
+                      cinemaBorderColors[cinema] || "border-gray-300"
+                    }`}
+                  >
+                    {cinema}
+                  </span>
+                ))}
+              </CardFooter>
             </Card>
           ))}
         </div>
