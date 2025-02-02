@@ -7,6 +7,7 @@ from datetime import datetime
 from model import Showtime, MovieTitle, MovieDetail
 
 CATHAY_HOME = "https://www.cathaycineplexes.com.sg/"
+CATHAY = "Cathay"
 
 def clean_title(title: str) -> str:
     title = title.strip()
@@ -106,7 +107,7 @@ def scrape_cathay_movie_detail(movie: MovieTitle) -> MovieDetail:
         showtime_data = soup.find_all('div', class_='show-time-data')
         
         for data in showtime_data:
-            cinema = data.get('cinema_name', '')
+            location = data.get('cinema_name', '')
             # Parse date string into date object
             date_str = data.get('date_full', '').split('T')[0]
             show_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -118,7 +119,8 @@ def scrape_cathay_movie_detail(movie: MovieTitle) -> MovieDetail:
             link = data.get('link', '')
             
             showtimes.append(Showtime(
-                cinema=cinema,
+                cinema=CATHAY,
+                location=location,
                 date=show_date,
                 time=show_time,
                 link=link
@@ -133,7 +135,8 @@ def scrape_cathay_movie_detail(movie: MovieTitle) -> MovieDetail:
             rating=rating,
             runtime=runtime,
             opening_date=opening_div,
-            showtimes=showtimes  # Add the extracted showtimes
+            showtimes=showtimes,
+            cinemas=[CATHAY]  # Changed to list
         )
 
     except Exception as e:
