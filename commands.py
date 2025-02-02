@@ -1,5 +1,5 @@
 import typer
-from main import engine
+from engine import engine
 from sqlmodel import Session, SQLModel
 from cathay import get_cathay_movies
 

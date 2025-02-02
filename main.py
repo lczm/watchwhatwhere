@@ -2,11 +2,11 @@ import uvicorn
 from contextlib import asynccontextmanager
 from typing import Annotated
 from fastapi import Depends, FastAPI
-from sqlmodel import Session, create_engine, select, SQLModel
+from sqlmodel import Session, select
 from model import MovieDetail, Showtime
-
-DATABASE_URL = "sqlite:///watchwhatwhere.db"
-engine = create_engine(DATABASE_URL, echo=True)
+from fastapi_utilities import repeat_at
+from commands import drop_create_scrape
+from engine import engine
 
 # Gets a database session
 def get_session():
@@ -15,21 +15,17 @@ def get_session():
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
-# Load DB schema and load all data into it
+# Things that need to run on start up
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Commented out to make things fast
-    # SQLModel.metadata.drop_all(bind=engine)
-    # SQLModel.metadata.create_all(engine)
-    # cathay_movies = get_cathay_movies()
-    # with Session(engine) as session:
-    #     session.add_all(cathay_movies)
-    #     session.commit()
-    #     for movie in cathay_movies:
-    #         session.refresh(movie)
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+# Run every hour
+@repeat_at(cron="0 * * * *")
+def hourly():
+    drop_create_scrape()
 
 @app.get("/watchwhatwhere/")
 async def movies(session: SessionDep):
