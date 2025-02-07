@@ -1,10 +1,11 @@
+import asyncio
 import uvicorn
 from contextlib import asynccontextmanager
 from typing import Annotated
 from fastapi import Depends, FastAPI
 from sqlmodel import Session, select
 from model import MovieDetail, Showtime
-from fastapi_utilities import repeat_at
+from fastapi_utilities import repeat_every
 from commands import drop_create_scrape
 from engine import engine
 
@@ -18,12 +19,13 @@ SessionDep = Annotated[Session, Depends(get_session)]
 # Things that need to run on start up
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    asyncio.create_task(hourly())
     yield
 
 app = FastAPI(lifespan=lifespan)
 
 # Run every hour
-@repeat_at(cron="0 * * * *")
+@repeat_every(seconds=60*60)
 def hourly():
     drop_create_scrape()
 
