@@ -2,7 +2,8 @@ import typer
 from engine import engine
 from sqlmodel import Session, SQLModel, select
 from cathay import get_cathay_movies
-from model import MovieDetail, Showtime
+from shaw import get_shaw_movies
+from model import MovieDetail
 
 app = typer.Typer()
 
@@ -37,16 +38,27 @@ def insert_movies(movies):
         session.commit()
 
 @app.command()
-def scrape():
+def scrape_cathay():
     cathay_movies = get_cathay_movies()
     insert_movies(cathay_movies)
 
 @app.command()
+def scrape_shaw():
+    shaw_movies = get_shaw_movies()
+    insert_movies(shaw_movies)
+
+@app.command()
 def drop_create_scrape():
+    # Get cathay and shaw movies
+    cathay_movies = get_cathay_movies()
+    shaw_movies = get_shaw_movies()
+
+    # Drop and insert them them only after fetching them
     SQLModel.metadata.drop_all(bind=engine)
     SQLModel.metadata.create_all(engine)
-    cathay_movies = get_cathay_movies()
     insert_movies(cathay_movies)
+    insert_movies(shaw_movies)
+    
 
 if __name__ == "__main__":
     app()
