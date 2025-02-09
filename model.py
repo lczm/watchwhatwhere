@@ -15,9 +15,9 @@ class MovieDetail(SQLModel, table=True):
     cast: str 
     genre: str
     language: str
-    rating: str
+    rating: Optional[str] = Field(default=None)
     runtime: str
-    opening_date: str
+    opening_date: Optional[str] = Field(default=None)
     cinemas: List[str] = Field(default=[], sa_type=JSON)
 
     # Relationship to "Showtime"
