@@ -83,47 +83,69 @@ export function MovieDetails() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="Cathay" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="Cathay">Cathay</TabsTrigger>
-                    <TabsTrigger value="Shaw">Shaw</TabsTrigger>
-                  </TabsList>
-                  {["Cathay", "Shaw"].map((cinema) => (
-                    <TabsContent key={cinema} value={cinema}>
-                      <div className="space-y-4">
-                        {Object.entries(groupedShowtimes[date][cinema]).map(
-                          ([location, times]) => (
-                            <div key={location} className="space-y-2">
-                              <h3 className="font-semibold text-sm">
-                                {location}
-                              </h3>
-                              <div className="flex flex-wrap gap-2">
-                                {times
-                                  .sort((a, b) => a.time.localeCompare(b.time))
-                                  .map((showtime) => (
-                                    <button
-                                      key={showtime.id}
-                                      onClick={() =>
-                                        window.open(showtime.link, "_blank")
-                                      }
-                                      className="px-3 py-1 text-sm bg-secondary hover:bg-secondary/80 rounded-md"
-                                    >
-                                      {new Date(
-                                        `2000-01-01T${showtime.time}`
-                                      ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                    </button>
-                                  ))}
-                              </div>
-                            </div>
-                          )
-                        )}
+                {(() => {
+                  const availableCinemas = ["Cathay", "Shaw"].filter(
+                    (cinema) =>
+                      Object.keys(groupedShowtimes[date][cinema]).length > 0
+                  );
+
+                  if (availableCinemas.length === 0) {
+                    return (
+                      <div className="text-sm text-muted-foreground">
+                        No showtimes available
                       </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
+                    );
+                  }
+
+                  return (
+                    <Tabs defaultValue={availableCinemas[0]} className="w-full">
+                      <TabsList className="w-fit flex">
+                        {availableCinemas.map((cinema) => (
+                          <TabsTrigger key={cinema} value={cinema}>
+                            {cinema}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                      {availableCinemas.map((cinema) => (
+                        <TabsContent key={cinema} value={cinema}>
+                          <div className="space-y-4">
+                            {Object.entries(groupedShowtimes[date][cinema]).map(
+                              ([location, times]) => (
+                                <div key={location} className="space-y-2">
+                                  <h3 className="font-semibold text-sm">
+                                    {location}
+                                  </h3>
+                                  <div className="flex flex-wrap gap-2">
+                                    {times
+                                      .sort((a, b) =>
+                                        a.time.localeCompare(b.time)
+                                      )
+                                      .map((showtime) => (
+                                        <button
+                                          key={showtime.id}
+                                          onClick={() =>
+                                            window.open(showtime.link, "_blank")
+                                          }
+                                          className="px-3 py-1 text-sm bg-secondary hover:bg-secondary/80 rounded-md"
+                                        >
+                                          {new Date(
+                                            `2000-01-01T${showtime.time}`
+                                          ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </button>
+                                      ))}
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </TabsContent>
+                      ))}
+                    </Tabs>
+                  );
+                })()}
               </CardContent>
             </Card>
           ))}
