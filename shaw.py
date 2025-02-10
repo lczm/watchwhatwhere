@@ -8,6 +8,7 @@ from playwright.sync_api import sync_playwright
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from model import MovieDetail, Showtime
+from utils import clean_title_remove_brackets
 
 SHAW_HOME = "https://shaw.sg"
 SHAW = "Shaw"
@@ -44,9 +45,6 @@ def clean_timing(showtime):
         return f"{hour}:{minutes} {period}"
     return showtime
 
-def clean_title(title: str) -> str:
-    return re.sub(r'\(.*\)', "", title).strip()
-
 def convert_to_minutes(time_str) -> Optional[str]:
     match = re.match(r"(?:(\d+) hr)?\s*(?:(\d+) mins?)?", time_str)
 
@@ -64,7 +62,7 @@ def get_movie_details(link: str) -> MovieDetail:
         page = browser.new_page()
         page.goto(link, wait_until="load")
 
-        title = clean_title(page.locator("div.title").first.text_content())
+        title = clean_title_remove_brackets(page.locator("div.title").first.text_content())
         sypnopsis = page.locator("div.hide-for-tab.hide-for-mob").first.text_content()
         cast = page.locator("div.row.moviedetail").locator("div.col-lg-9").first.text_content()
 

@@ -5,6 +5,7 @@ from typing import List
 from pprint import pprint
 from datetime import datetime
 from model import Showtime, MovieTitle, MovieDetail
+from utils import clean_title_remove_brackets
 
 CATHAY_HOME = "https://www.cathaycineplexes.com.sg/"
 CATHAY = "Cathay"
@@ -16,7 +17,8 @@ def clean_title(title: str) -> str:
         title = title[:-1].strip()
     # Then clean the PG ratings out, this can be gotten later on
     title = ' '.join(title.split()[:-1])
-    return title
+    # Remove all brackets that exist as well
+    return clean_title_remove_brackets(title)
 
 def scrape_cathay_movies() -> List[MovieTitle]:
     """
