@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Run every hour
-@repeat_every(seconds=60*60)
+@repeat_every(seconds=60*60, wait_first=True)
 def hourly():
     drop_create_scrape()
 
