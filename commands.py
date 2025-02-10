@@ -36,14 +36,12 @@ def insert_movies(movies):
                         cinemas=updated_cinemas
                     )
                     session.exec(update_stmt)
-                
                 # update all showtimes back to the same distinct entry
                 for showtime in new_movie.showtimes:
                     showtime.movie = existing_movie
                     session.add(showtime)
             else:
                 session.add(new_movie)
-        
         session.commit()
 
 @app.command()
@@ -53,7 +51,7 @@ def scrape_cathay():
 
 @app.command()
 def scrape_shaw():
-    shaw_movies = get_shaw_movies(workers=8)
+    shaw_movies = get_shaw_movies()
     insert_movies(shaw_movies)
 
 @app.command()
@@ -67,7 +65,7 @@ def drop_create_scrape():
     SQLModel.metadata.create_all(engine)
     insert_movies(cathay_movies)
     insert_movies(shaw_movies)
-    
+
 
 if __name__ == "__main__":
     app()

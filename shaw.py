@@ -52,7 +52,7 @@ def convert_to_minutes(time_str) -> Optional[str]:
         hours = int(match.group(1)) if match.group(1) else 0
         minutes = int(match.group(2)) if match.group(2) else 0
         return str(hours * 60 + minutes) + " mins"
-    
+
     return None  # Return None if format is invalid
 
 def get_movie_details(link: str) -> MovieDetail:
@@ -116,7 +116,7 @@ def get_movie_details(link: str) -> MovieDetail:
             cinemas=[SHAW]
         )
 
-def get_shaw_movies(workers=8) -> List[MovieDetail]:
+def get_shaw_movies(workers=2) -> List[MovieDetail]:
     movies = get_currently_showing_links()
     movie_details = []
 
