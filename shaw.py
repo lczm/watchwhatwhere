@@ -116,7 +116,7 @@ def get_movie_details(link: str) -> MovieDetail:
             cinemas=[SHAW]
         )
 
-def get_shaw_movies(workers=2) -> List[MovieDetail]:
+def get_shaw_movies(workers=1) -> List[MovieDetail]:
     movies = get_currently_showing_links()
     movie_details = []
 
