@@ -4,7 +4,7 @@ from sqlmodel import Session, SQLModel, select
 from cathay import get_cathay_movies
 from shaw import get_shaw_movies
 from model import MovieDetail
-from sqlalchemy import  update
+from sqlalchemy import func, update
 
 app = typer.Typer()
 
@@ -21,7 +21,10 @@ def insert_movies(movies):
         for new_movie in movies:
             assert(len(new_movie.cinemas) == 1)
             # Check if movie already exists
-            stmt = select(MovieDetail).where(MovieDetail.title == new_movie.title)
+            stmt = select(MovieDetail).where(
+                # Take purely upper case
+                func.upper(MovieDetail.title) == new_movie.title.upper()
+            )
             existing_movie = session.exec(stmt).first()
             if existing_movie:
                 if new_movie.cinemas[0] not in existing_movie.cinemas:
