@@ -136,7 +136,7 @@ def scrape_cathay_movie_detail(movie: MovieTitle) -> MovieDetail:
             runtime=runtime,
             opening_date=opening_div,
             showtimes=showtimes,
-            cinemas=[CATHAY]  # Changed to list
+            cinemas=[CATHAY]
         )
 
     except Exception as e:

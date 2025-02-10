@@ -44,6 +44,9 @@ def clean_timing(showtime):
         return f"{hour}:{minutes} {period}"
     return showtime
 
+def clean_title(title: str) -> str:
+    return re.sub(r'\(.*\)', "", title).strip()
+
 def convert_to_minutes(time_str) -> Optional[str]:
     match = re.match(r"(?:(\d+) hr)?\s*(?:(\d+) mins?)?", time_str)
 
@@ -61,7 +64,7 @@ def get_movie_details(link: str) -> MovieDetail:
         page = browser.new_page()
         page.goto(link, wait_until="load")
 
-        title = page.locator("div.title").first.text_content()
+        title = clean_title(page.locator("div.title").first.text_content())
         sypnopsis = page.locator("div.hide-for-tab.hide-for-mob").first.text_content()
         cast = page.locator("div.row.moviedetail").locator("div.col-lg-9").first.text_content()
 
@@ -115,7 +118,7 @@ def get_movie_details(link: str) -> MovieDetail:
             cinemas=[SHAW]
         )
 
-def get_shaw_movies(workers=2) -> List[MovieDetail]:
+def get_shaw_movies(workers=8) -> List[MovieDetail]:
     movies = get_currently_showing_links()
     movie_details = []
 
