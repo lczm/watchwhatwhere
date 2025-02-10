@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Movie, Showtime } from "@/types";
 import { ApiService } from "@/utils/api";
 
@@ -27,14 +28,18 @@ export function MovieDetails() {
     return showtimes.reduce((acc, showtime) => {
       const date = showtime.date;
       if (!acc[date]) {
-        acc[date] = {};
+        acc[date] = {
+          Cathay: {},
+          Shaw: {},
+        };
       }
-      if (!acc[date][showtime.location]) {
-        acc[date][showtime.location] = [];
+      const cinema = showtime.cinema;
+      if (!acc[date][cinema][showtime.location]) {
+        acc[date][cinema][showtime.location] = [];
       }
-      acc[date][showtime.location].push(showtime);
+      acc[date][cinema][showtime.location].push(showtime);
       return acc;
-    }, {} as Record<string, Record<string, Showtime[]>>);
+    }, {} as Record<string, Record<string, Record<string, Showtime[]>>>);
   };
 
   if (!movie) return <div>Loading...</div>;
@@ -78,35 +83,47 @@ export function MovieDetails() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(groupedShowtimes[date]).map(
-                    ([location, times]) => (
-                      <div key={location} className="space-y-2">
-                        <h3 className="font-semibold text-sm">{location}</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {times
-                            .sort((a, b) => a.time.localeCompare(b.time))
-                            .map((showtime) => (
-                              <button
-                                key={showtime.id}
-                                onClick={() =>
-                                  window.open(showtime.link, "_blank")
-                                }
-                                className="px-3 py-1 text-sm bg-secondary hover:bg-secondary/80 rounded-md"
-                              >
-                                {new Date(
-                                  `2000-01-01T${showtime.time}`
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </button>
-                            ))}
-                        </div>
+                <Tabs defaultValue="Cathay" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="Cathay">Cathay</TabsTrigger>
+                    <TabsTrigger value="Shaw">Shaw</TabsTrigger>
+                  </TabsList>
+                  {["Cathay", "Shaw"].map((cinema) => (
+                    <TabsContent key={cinema} value={cinema}>
+                      <div className="space-y-4">
+                        {Object.entries(groupedShowtimes[date][cinema]).map(
+                          ([location, times]) => (
+                            <div key={location} className="space-y-2">
+                              <h3 className="font-semibold text-sm">
+                                {location}
+                              </h3>
+                              <div className="flex flex-wrap gap-2">
+                                {times
+                                  .sort((a, b) => a.time.localeCompare(b.time))
+                                  .map((showtime) => (
+                                    <button
+                                      key={showtime.id}
+                                      onClick={() =>
+                                        window.open(showtime.link, "_blank")
+                                      }
+                                      className="px-3 py-1 text-sm bg-secondary hover:bg-secondary/80 rounded-md"
+                                    >
+                                      {new Date(
+                                        `2000-01-01T${showtime.time}`
+                                      ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </button>
+                                  ))}
+                              </div>
+                            </div>
+                          )
+                        )}
                       </div>
-                    )
-                  )}
-                </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </CardContent>
             </Card>
           ))}
