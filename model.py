@@ -1,7 +1,8 @@
-from typing import List, Optional
 from dataclasses import dataclass
 from datetime import date, time
-from sqlmodel import Field, Relationship, SQLModel, JSON
+from typing import List, Optional
+
+from sqlmodel import JSON, Field, Relationship, SQLModel
 
 
 @dataclass

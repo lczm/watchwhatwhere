@@ -1,10 +1,11 @@
 import typer
-from engine import engine
-from sqlmodel import Session, SQLModel, select
-from cathay import get_cathay_movies
-from shaw import get_shaw_movies
-from model import MovieDetail
 from sqlalchemy import func, update
+from sqlmodel import Session, SQLModel, select
+
+from cathay import get_cathay_movies
+from engine import engine
+from model import MovieDetail
+from shaw import get_shaw_movies
 
 app = typer.Typer()
 

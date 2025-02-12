@@ -1,15 +1,15 @@
 import asyncio
-import uvicorn
-from datetime import datetime
 from contextlib import asynccontextmanager
 from typing import Annotated
+
+import uvicorn
 from fastapi import Depends, FastAPI
-from sqlmodel import Session, select
-from sqlalchemy import and_
-from model import MovieDetail, Showtime
 from fastapi_utilities import repeat_every
+from sqlmodel import Session, select
+
 from commands import drop_create_scrape
 from engine import engine
+from model import MovieDetail, Showtime
 
 
 # Gets a database session

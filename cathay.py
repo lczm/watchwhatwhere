@@ -1,9 +1,11 @@
+from datetime import datetime
+from pprint import pprint
+from typing import List
+
 import requests
 from bs4 import BeautifulSoup
-from typing import List
-from pprint import pprint
-from datetime import datetime
-from model import Showtime, MovieTitle, MovieDetail
+
+from model import MovieDetail, MovieTitle, Showtime
 from utils import clean_title_remove_brackets
 
 CATHAY_HOME = "https://www.cathaycineplexes.com.sg/"

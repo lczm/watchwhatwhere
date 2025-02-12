@@ -1,12 +1,14 @@
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pprint import pprint
 from typing import List, Optional
+
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+
 from model import MovieDetail, Showtime
 from utils import clean_title_remove_brackets
 
