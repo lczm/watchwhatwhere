@@ -3,16 +3,18 @@ from dataclasses import dataclass
 from datetime import date, time
 from sqlmodel import Field, Relationship, SQLModel, JSON
 
+
 @dataclass
 class MovieTitle:
     title: str
     href: str
 
+
 class MovieDetail(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str
     synopsis: str
-    cast: str 
+    cast: str
     genre: str
     language: str
     rating: Optional[str] = Field(default=None)
@@ -24,12 +26,13 @@ class MovieDetail(SQLModel, table=True):
     # Note the string reference to "Showtime" if you define this class first
     showtimes: List["Showtime"] = Relationship(back_populates="movie")
 
+
 class Showtime(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     cinema: str
     location: str
     date: date
-    time: time 
+    time: time
     link: str
 
     # Foreign Key referencing MovieDetail
