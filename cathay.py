@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from dataclasses import dataclass
 from typing import List
 from pprint import pprint
 from datetime import datetime
