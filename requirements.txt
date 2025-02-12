@@ -49,6 +49,7 @@ realtime==2.2.0
 requests==2.32.3
 rich==13.9.4
 rich-toolkit==0.12.0
+ruff==0.9.6
 shellingham==1.5.4
 six==1.17.0
 sniffio==1.3.1
