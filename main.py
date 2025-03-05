@@ -1,9 +1,11 @@
 import asyncio
 import uvicorn
+from datetime import datetime
 from contextlib import asynccontextmanager
 from typing import Annotated
 from fastapi import Depends, FastAPI
 from sqlmodel import Session, select
+from sqlalchemy import and_
 from model import MovieDetail, Showtime
 from fastapi_utilities import repeat_every
 from commands import drop_create_scrape
@@ -39,7 +41,7 @@ async def movie(movie_id: int, session: SessionDep):
 
 @app.get("/watchwhatwhere/showtimes/{movie_id}")
 async def showtimes(movie_id: int, session: SessionDep):
-    return session.exec(select(Showtime).where(Showtime.movie_id == movie_id)).all()
+    return session.exec(select(Showtime).where(and_(Showtime.movie_id == movie_id, Showtime.date >= datetime.now()))).all()
 
 if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
