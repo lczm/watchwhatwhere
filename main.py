@@ -1,11 +1,13 @@
 import asyncio
 from contextlib import asynccontextmanager
 from typing import Annotated
+from datetime import datetime
 
 import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi_utilities import repeat_every
 from sqlmodel import Session, select
+from sqlalchemy import and_
 
 from commands import drop_create_scrape
 from engine import engine
