@@ -163,22 +163,15 @@ def get_gv_movie_details(movie: MovieTitle) -> MovieDetail:
             for time_element in all_times:
                 raw_time = time_element.inner_text().strip()  # e.g., "2:30 PM"
                 time = datetime.strptime(raw_time, "%I:%M %p").time()
-
-                # The url is hidden behind a function, so we must click.
-                time_element.click()
-                page.wait_for_load_state("networkidle")
-
-                url = page.url
                 showtimes.append(
                     Showtime(
                             cinema = GV,
                             location = "",
                             date = date, 
                             time = time,
-                            link = url,
+                            link = movie.href,
                             )
                     )
-                print(date, time, url)
 
     browser.close()
     p.stop()
