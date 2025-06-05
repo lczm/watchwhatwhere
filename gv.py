@@ -14,7 +14,6 @@ GV_HOME = "https://www.gv.com.sg/"
 GV_MOVIES = "https://www.gv.com.sg/GVMovies"
 GV = "GV"
 
-
 # ________________________________________________________________________________
 #
 #                                 SUPPORTING FUNCTIONS
@@ -73,7 +72,8 @@ def playwright_for_gv(url:str):
     page.goto(url, wait_until="load")
 
     return p, browser, page
-# ________________________________________________________________________________
+
+#_________________________________________________________________________________
 #
 #                                  MAIN FUNCTIONS
 # ________________________________________________________________________________
@@ -113,83 +113,56 @@ def get_gv_movies() -> List[MovieTitle]:
     p.stop()
     return movies
 
-def get_gv_movie_details(movie: MovieTitle) -> MovieDetail:
-    """
-    Extract movie detail by making a request to the movie's detail page URL.
-    """
-    showtimes : List[Showtime] = []
-    synopsis_div = cast_div = genre_div = language_div = (
-        runtime_div
-    ) = opening_div = None
 
-    p, browser, page = playwright_for_gv(movie.href)
-    contents = page.content()
-    soup = BeautifulSoup(contents, "html.parser")
 
-    sections = soup.find("div", class_="col-md-8 col-sm-8 col-xs-12 col-pg-rt-zero")
 
-    if sections:
-        cast_div = soup.find(attrs={"ng-bind-html": "filminfo.mainCast"})
-        genre_div = soup.find(attrs={"ng-bind-html": "filminfo.genre"})
-        opening_div = soup.find(attrs={"ng-bind-html": "filminfo.formattedReleaseDate"})
-        runtime_div = soup.find("div", class_="col-md-8 col-sm-7 col-xs-7 col-pg-zero ng-binding")
-        language_div = soup.find(attrs={"ng-bind-html": "filminfo.languageSubtitle"})
-        synopsis_div = soup.find(attrs={"ng-bind-html": "filminfo.synopsis"})
 
-    synopsis = " ".join(synopsis_div.text.split()).strip() if synopsis_div else ""
-    cast = " ".join(cast_div.text.split()).strip() if cast_div else ""
-    genre = " ".join(genre_div.text.split()).strip() if genre_div else ""
-    language = " ".join(language_div.text.split()).strip() if language_div else ""
-    runtime = " ".join(runtime_div.text.split()).strip() if runtime_div else ""
-    opening = " ".join(opening_div.text.split()).strip() if opening_div else ""
+def get_gv_movie_details(url_link: str) -> str:
+    from pprint import pprint
 
-    locations_div = page.locator("div.cinemas-body.clearfix")
-    list_of_locations = locations_div.locator("li a.ng-binding").all()
+    requests_captured = {}
 
-    for location in list_of_locations:
-        location.click()
-        page.wait_for_selector("div.time-body")
+    def handle_request(request):
+        url = request.url
+        if request.method == "POST":
+            print(f"🛰️ {request.method} {url}")
+            if ".gv-api/filminfo" in url:
+                print(f"✅ Captured filminfo request: {url}")
+                print("Payload:", request.post_data)
+                requests_captured["film_info"] = (url, request.post_data)
+            elif ".gv-api/sessionforfilm" in url:
+                print(f"✅ Captured sessionforfilm request: {url}")
+                print("Payload:", request.post_data)
+                requests_captured["session_info"] = (url, request.post_data)
 
-        all_date_and_time = page.locator("div.time-body ul.list-unstyled li.ng-scope").all() 
+    # 1. Start browser and visit the homepage first
+    p, browser, page = playwright_for_gv("https://www.gv.com.sg/")
+    page.on("request", handle_request)
+    page.wait_for_timeout(4000)  # Wait for homepage JS/cookies
 
-        for element in all_date_and_time:
-            date_span = element.locator("span.date.ng-binding")
-            if not date_span:
-                continue
-            date_str = date_span.inner_text().strip()  
-            date = datetime.strptime(date_str, "%d-%m-%Y").date()
-            all_times = element.locator("li.ng-scope button").all()
+    # 2. Now navigate to movie detail page
+    page.goto(url_link, wait_until="domcontentloaded")
+    page.wait_for_timeout(14000)
+    page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
+    page.wait_for_timeout(5000)  # Let any lazy-loaders fire
 
-            for time_element in all_times:
-                raw_time = time_element.inner_text().strip()  # e.g., "2:30 PM"
-                time = datetime.strptime(raw_time, "%I:%M %p").time()
-                showtimes.append(
-                    Showtime(
-                            cinema = GV,
-                            location = "",
-                            date = date, 
-                            time = time,
-                            link = movie.href,
-                            )
-                    )
+    print("Requests captured:", requests_captured.keys())
+    film_info = requests_captured.get("film_info")
+    session_info = requests_captured.get("session_info")
 
     browser.close()
     p.stop()
 
-    return MovieDetail(
-        title=movie.title,
-        synopsis=synopsis,
-        cast=cast,
-        genre=genre,
-        language=language,
-        rating=None,
-        runtime=runtime,
-        opening_date=opening,
-        showtimes=showtimes,
-        cinemas=[GV],
-    )
+    if not film_info or not session_info:
+        raise Exception("❌ One or both required API requests were not captured.")
+
+    print("FILM INFO REQUEST URL:", film_info[0])
+    print("FILM INFO PAYLOAD:", film_info[1])
+    print("SESSION REQUEST URL:", session_info[0])
+    print("SESSION PAYLOAD:", session_info[1])
+    return "finished"
+
 
 if __name__ == "__main__":
-    movies = get_gv_movies()
-    movie_details = get_gv_movie_details(movies[0])
+    movie_details = get_gv_movie_details("https://www.gv.com.sg/GVMovieDetails?movie=1276#/movie/1276")
     pprint(movie_details)
