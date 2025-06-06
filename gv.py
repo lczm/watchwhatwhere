@@ -1,10 +1,9 @@
-from os import wait
 import re
 from datetime import date,time, datetime
 
-from pprint import pprint
-from typing import List, Optional
 
+from pprint import pprint
+from typing import List
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
@@ -26,7 +25,24 @@ def clean_gv_title (title:str) -> str:
     title = re.sub(r"[+^*]+$", "", title).strip()
     return title
 
-def playwright_for_gv(url:str):
+def clean_gv_synopsis(synopsis:str) -> str:
+    """
+    We split at the first "<br />" and take only the first half of the string.
+    """
+    clean_synopsis = re.split(r"<br\s*/?>", synopsis, maxsplit=1)[0].strip()
+    return clean_synopsis
+
+def clean_gv_date(date_ms: int) -> date:
+    return datetime.fromtimestamp(date_ms / 1000).date()
+
+def clean_gv_time(time_str: str) -> time:
+    return datetime.strptime(time_str, "%I:%M%p").time()
+
+def get_gv_date_for_href(date_ms: int) -> str:
+    date = datetime.fromtimestamp(date_ms / 1000)
+    return date.strftime("%d-%m-%Y")
+
+def playwright_for_gv():
     """
     This is the base function for playwright
     It takes in a URL and returns the page along with browser activity.
@@ -35,7 +51,7 @@ def playwright_for_gv(url:str):
     p = sync_playwright().start()
     # `headless=False` simulates a visible browser
     browser = p.chromium.launch(
-        headless=False,
+        headless=True, # Set to false for testing
         args=[
             "--disable-blink-features=AutomationControlled",
             "--disable-web-security",
@@ -68,8 +84,7 @@ def playwright_for_gv(url:str):
         };
     """)
 
-    # === Navigate ===
-    page.goto(url, wait_until="load")
+
 
     return p, browser, page
 
@@ -78,11 +93,14 @@ def playwright_for_gv(url:str):
 #                                  MAIN FUNCTIONS
 # ________________________________________________________________________________
 
-def get_gv_movies() -> List[MovieTitle]:
+def get_all_gv_movies_links() -> List[MovieTitle]:
     """
     Gets a list of all GV Movies and its link.
     """
-    p, browser, page = playwright_for_gv(GV_MOVIES) 
+    p, browser, page = playwright_for_gv() 
+    
+    # === Navigate ===
+    page.goto(GV_MOVIES, wait_until="load")
 
     # Get page content
     elements = page.query_selector_all("#nowMovieThumb")
@@ -113,56 +131,91 @@ def get_gv_movies() -> List[MovieTitle]:
     p.stop()
     return movies
 
-
-
-
-
-def get_gv_movie_details(url_link: str) -> str:
+def get_gv_movie_details(movie: MovieTitle) -> MovieDetail:
     from pprint import pprint
 
-    requests_captured = {}
+    p, browser, page = playwright_for_gv()
 
-    def handle_request(request):
-        url = request.url
-        if request.method == "POST":
-            print(f"🛰️ {request.method} {url}")
-            if ".gv-api/filminfo" in url:
-                print(f"✅ Captured filminfo request: {url}")
-                print("Payload:", request.post_data)
-                requests_captured["film_info"] = (url, request.post_data)
-            elif ".gv-api/sessionforfilm" in url:
-                print(f"✅ Captured sessionforfilm request: {url}")
-                print("Payload:", request.post_data)
-                requests_captured["session_info"] = (url, request.post_data)
+    # Prepare to capture both API responses
+    with page.expect_response(lambda r: ".gv-api/filminfo" in r.url and r.request.method == "POST") as film_info_promise, \
+         page.expect_response(lambda r: ".gv-api/sessionforfilm" in r.url and r.request.method == "POST") as session_info_promise:
+        
+        # Then we nagivate to the url
+        page.goto(movie.href, wait_until="load")
+        page.wait_for_timeout(6000)  # Give JS time to run
+        page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
+        page.wait_for_timeout(4000)
 
-    # 1. Start browser and visit the homepage first
-    p, browser, page = playwright_for_gv("https://www.gv.com.sg/")
-    page.on("request", handle_request)
-    page.wait_for_timeout(4000)  # Wait for homepage JS/cookies
+    # Capture responses
+    film_info_response = film_info_promise.value
+    session_info_response = session_info_promise.value
+    film_info_json = film_info_response.json()
+    session_info_json = session_info_response.json()
 
-    # 2. Now navigate to movie detail page
-    page.goto(url_link, wait_until="domcontentloaded")
-    page.wait_for_timeout(14000)
-    page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
-    page.wait_for_timeout(5000)  # Let any lazy-loaders fire
+    opening_date_raw = film_info_json["data"]["releaseDate"]
+    opening_date = datetime.fromtimestamp(opening_date_raw / 1000)
+    formatted_opening_date = opening_date.strftime("%d %b %Y")
 
-    print("Requests captured:", requests_captured.keys())
-    film_info = requests_captured.get("film_info")
-    session_info = requests_captured.get("session_info")
+    synopsis_raw=film_info_json["data"]["synopsis"]
+    synopsis = clean_gv_synopsis(synopsis_raw)
 
+    # === Cleanup ===
     browser.close()
     p.stop()
+    showtimes = []
 
-    if not film_info or not session_info:
-        raise Exception("❌ One or both required API requests were not captured.")
+    film_code = session_info_json["data"]["filmCd"]
 
-    print("FILM INFO REQUEST URL:", film_info[0])
-    print("FILM INFO PAYLOAD:", film_info[1])
-    print("SESSION REQUEST URL:", session_info[0])
-    print("SESSION PAYLOAD:", session_info[1])
-    return "finished"
+    # need to  to get the values instead of the keys.
+    for location in session_info_json["data"]["locations"]:
+        cinema_id = location["id"] 
+        cinema_name = location["name"]
+        for dates in location["dates"]:
+            session_date_obj = clean_gv_date(dates["date"])
+            show_date = get_gv_date_for_href(dates["date"])
+            for times in dates["times"]:
+                session_time_obj = clean_gv_time(times["time12"])
+                session_time_24h = times["time24"]
+                hall_number = times["hallNumber"]
+                href = (
+                    f"https://www.gv.com.sg/GVSeatSelection#/cinemaId/{cinema_id}"
+                    f"/filmCode/{film_code}"
+                    f"/showDate/{show_date}"
+                    f"/showTime/{session_time_24h}"
+                    f"/hallNumber/{hall_number}"
+                )
 
+                showtimes.append(
+                       Showtime(
+                            cinema=GV,
+                            location=cinema_name,
+                            date=session_date_obj,
+                            time=session_time_obj,
+                            link=href,
+                        )
+               ) 
+
+    return MovieDetail(
+        title=movie.title,
+        synopsis=synopsis,
+        cast=film_info_json["data"]["mainCast"],
+        genre=film_info_json["data"]["genre"],
+        language=film_info_json["data"]["language"],
+        rating=film_info_json["data"]["rating"],
+        runtime=film_info_json["data"]["duration"],
+        opening_date=formatted_opening_date,
+        showtimes=showtimes,
+        cinemas=[GV],
+    )
+
+
+def get_gv_movies() -> List[MovieDetail]:
+    movies = get_all_gv_movies_links()
+    movie_details = [get_gv_movie_details(movie) for movie in movies]
+
+    return movie_details
 
 if __name__ == "__main__":
-    movie_details = get_gv_movie_details("https://www.gv.com.sg/GVMovieDetails?movie=1276#/movie/1276")
-    pprint(movie_details)
+    movies = get_all_gv_movies_links()
+    movie_details_list = [get_gv_movie_details(movie) for movie in movies]
+    pprint(movie_details_list)
