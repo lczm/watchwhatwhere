@@ -31,6 +31,7 @@ export function MovieDetails() {
         acc[date] = {
           Cathay: {},
           Shaw: {},
+          GV: {},
         };
       }
       const cinema = showtime.cinema;
@@ -84,7 +85,7 @@ export function MovieDetails() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const availableCinemas = ["Cathay", "Shaw"].filter(
+                  const availableCinemas = ["Cathay", "Shaw", "GV"].filter(
                     (cinema) =>
                       Object.keys(groupedShowtimes[date][cinema]).length > 0
                   );

@@ -10,10 +10,11 @@ import {
 import { Movie } from "@/types";
 import { ApiService } from "@/utils/api";
 
+// Add cinemas and their colors here
 const cinemaBorderColors: { [key: string]: string } = {
   Cathay: "border-red-400",
   Shaw: "border-blue-400",
-  // Add more cinemas and their colors here
+  GV: "border-green-400",
 };
 
 export function MovieList() {

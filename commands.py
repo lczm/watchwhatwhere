@@ -6,6 +6,7 @@ from cathay import get_cathay_movies
 from engine import engine
 from model import MovieDetail
 from shaw import get_shaw_movies
+from gv import get_gv_movies
 
 app = typer.Typer()
 
@@ -60,18 +61,25 @@ def scrape_shaw():
     shaw_movies = get_shaw_movies()
     insert_movies(shaw_movies)
 
+@app.command()
+def scrape_gv():
+    gv_movies = get_gv_movies()
+    insert_movies(gv_movies)
+
 
 @app.command()
 def drop_create_scrape():
     # Get cathay and shaw movies
     cathay_movies = get_cathay_movies()
     shaw_movies = get_shaw_movies()
+    gv_movies = get_gv_movies()
 
     # Drop and insert them them only after fetching them
     SQLModel.metadata.drop_all(bind=engine)
     SQLModel.metadata.create_all(engine)
     insert_movies(cathay_movies)
     insert_movies(shaw_movies)
+    insert_movies(gv_movies)
 
 
 if __name__ == "__main__":

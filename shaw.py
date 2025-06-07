@@ -1,9 +1,11 @@
 import re
+import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pprint import pprint
 from typing import List, Optional
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
@@ -18,23 +20,20 @@ SHAW = "Shaw"
 
 def get_currently_showing_links() -> List[str]:
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(SHAW_HOME, wait_until="load")
 
-        # element = page.query_selector("div.col-lg-12.col-sm-12.col-xs-12")
         element = page.query_selector("#indexNowShowingMovies")
+        if not element:
+            return set()
 
-        links = set()
-        # Get and print the inner text of the element.
-        if element:
-            inner_html = element.inner_html()
-            soup = BeautifulSoup(inner_html, "html.parser")
-            # Find all <a> tags with an href attribute and print each href.
-            for link in soup.find_all("a", href=True):
-                links.add(SHAW_HOME + link["href"])
-        else:
-            print("Cannot find not showing")
+        soup = BeautifulSoup(element.inner_html(), "html.parser")
+        links = {
+            urljoin(SHAW_HOME, link["href"])
+            for link in soup.find_all("a", href=True)
+            if "film-festival" not in link["href"]
+        }
 
         browser.close()
         return links
@@ -64,9 +63,9 @@ def convert_to_minutes(time_str) -> Optional[str]:
 def get_movie_details(link: str) -> MovieDetail:
     print(link)
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        page.goto(link, wait_until="load")
+        page.goto(link, wait_until="load", timeout=60000)
 
         title = clean_title_remove_brackets(
             page.locator("div.title").first.text_content()
@@ -143,16 +142,13 @@ def get_movie_details(link: str) -> MovieDetail:
         )
 
 
-def get_shaw_movies(workers=1) -> List[MovieDetail]:
+def get_shaw_movies() -> List[MovieDetail]:
     movies = get_currently_showing_links()
     movie_details = []
 
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(get_movie_details, movie) for movie in movies]
-        for future in tqdm(
-            as_completed(futures), total=len(futures), desc="Processing movies"
-        ):
-            movie_details.append(future.result())
+    for movie in movies:
+        movie_details.append(get_movie_details(movie))
+        time.sleep(random.uniform(2, 5))
 
     return movie_details
 
